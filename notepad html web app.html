@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Notepad Pro</title>
+    <style>
+        :root {
+            --neon-pink: #ff00aa;
+            --neon-blue: #00f7ff;
+            --neon-purple: #aa00ff;
+            --neon-green: #00ffaa;
+            --dark-bg: #0a0a12;
+            --panel-bg: #151520;
+            --text-light: #f0f0ff;
+            --text-dim: #b0b0c0;
+            --glass-effect: rgba(20, 20, 40, 0.7);
+            --glow: 0 0 15px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        @font-face {
+            font-family: 'Future Tech';
+            src: url('https://fonts.cdnfonts.com/css/future-techno-2');
+            font-display: swap;
+        }
+
+        /* App Container */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Cyberpunk Header */
+        .header {
+            padding: 12px 16px;
+            background: linear-gradient(145deg, #151520, #0f0f1a);
+            border-bottom: 1px solid #252535;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            font-family: 'Future Tech', sans-serif;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: var(--glow) rgba(0, 247, 255, 0.3);
+            letter-spacing: 1px;
+        }
+
+        /* Main Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--panel-bg);
+            color: var(--text-light);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.3s;
+        }
+
+        .btn:hover::after {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: black;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3366, #ff00aa);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            color: black;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Sidebar - Cyber Slide */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 85%;
+            max-width: 320px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-right: 1px solid #252535;
+            z-index: 90;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #252535;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Search - Cyber Input */
+        .search-container {
+            padding: 12px 16px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a2a;
+            border: 1px solid #303040;
+            color: var(--text-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 0 2px rgba(0, 247, 255, 0.2);
+        }
+
+        /* Note List - Holographic */
+        .note-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .note-item {
+            padding: 14px;
+            margin-bottom: 8px;
+            background: var(--glass-effect);
+            border-radius: 8px;
+            border: 1px solid #303040;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--neon-blue), var(--neon-purple));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .note-item:hover {
+            border-color: #404050;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .note-item:hover::before {
+            opacity: 1;
+        }
+
+        .note-item.selected {
+            background: rgba(255, 0, 170, 0.1);
+            border-color: var(--neon-pink);
+        }
+
+        .note-item.active {
+            background: rgba(0, 247, 255, 0.1);
+            border-color: var(--neon-blue);
+        }
+
+        .note-item.active::before {
+            opacity: 1;
+        }
+
+        .note-item-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .note-item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .note-item-preview {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .note-item-date {
+            font-size: 0.7rem;
+            color: #707080;
+            margin-top: 6px;
+        }
+
+        .note-item-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--neon-blue);
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* Editor Area - Futuristic Terminal */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .note-title-input {
+            padding: 16px;
+            background: var(--panel-bg);
+            border: none;
+            border-bottom: 1px solid #252535;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .note-title-input:focus {
+            border-bottom-color: var(--neon-blue);
+        }
+
+        .note-editor {
+            flex: 1;
+            padding: 16px;
+            background: var(--panel-bg);
+            border: none;
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        /* Status Bar - Cyber Console */
+        .status-bar {
+            padding: 10px 16px;
+            background: linear-gradient(145deg, #151520, #0f0f1a);
+            border-top: 1px solid #252535;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .word-count {
+            color: var(--neon-blue);
+            font-weight: 600;
+        }
+
+        /* Selection Actions - HUD Style */
+        .selection-actions {
+            display: none;
+            padding: 10px 16px;
+            background: rgba(20, 20, 40, 0.9);
+            border-bottom: 1px solid #252535;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .selection-actions.visible {
+            display: flex;
+        }
+
+        .selection-actions .btn {
+            flex: 1;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        /* Toggle Button - Cyber Circle */
+        .toggle-sidebar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            color: black;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-sidebar:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Modal - Holographic Display */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            width: 90%;
+            max-width: 400px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.3);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .share-input {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a2a;
+            border: 1px solid var(--neon-blue);
+            color: var(--text-light);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .share-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            border-radius: 8px;
+            color: black;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.3);
+        }
+
+        /* PDF Options Modal */
+        .pdf-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .pdf-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pdf-option label {
+            flex: 1;
+        }
+
+        /* Particle Network Background */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Scrollbar - Neon Style */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2a;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--neon-blue), var(--neon-purple));
+            border-radius: 3px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 247, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(0, 247, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 247, 255, 0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 768px) {
+            .sidebar {
+                position: relative;
+                transform: translateX(0);
+                width: 300px;
+                max-width: none;
+            }
+            
+            .toggle-sidebar {
+                display: none;
+            }
+            
+            .selection-actions {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="particles" id="particles"></div>
+        
+        <header class="header">
+            <div class="logo">NEONPAD PRO</div>
+            <div class="controls">
+                <button class="btn" id="new-note-btn" title="New Note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-primary" id="save-note-btn" title="Save Note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                </button>
+                <button class="toggle-sidebar" id="toggle-sidebar" title="Toggle Sidebar">☰</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">NOTES DATABASE</div>
+                    <button class="btn btn-danger" id="clear-notes-btn" title="Clear All">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" class="search-input" id="search-input" placeholder="SEARCH NOTES...">
+                </div>
+                
+                <div class="selection-actions" id="selection-actions">
+                    <button class="btn btn-danger" id="delete-selected-btn" title="Delete Selected">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                    <button class="btn btn-primary" id="share-selected-btn" title="Share Selected">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                    </button>
+                    <button class="btn btn-success" id="export-pdf-btn" title="Export to PDF">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <path d="M8 13v5"></path>
+                            <path d="M16 13v5"></path>
+                            <path d="M12 10v8"></path>
+                        </svg>
+                    </button>
+                    <button class="btn" id="clear-selection-btn" title="Clear Selection">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                
+                <ul class="note-list" id="note-list">
+                    <!-- Notes will be added here dynamically -->
+                </ul>
+            </aside>
+
+            <div class="editor-container">
+                <input type="text" class="note-title-input" id="note-title" placeholder="ENTER TITLE">
+                <textarea class="note-editor" id="note-editor" placeholder="TYPE YOUR CYBER NOTES HERE..."></textarea>
+                <div class="status-bar">
+                    <span>SYSTEM v2.5.0</span>
+                    <span class="word-count" id="word-count">0 WORDS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <button class="modal-close" id="close-share-modal">&times;</button>
+            <h2 class="modal-title">SHARE DATA</h2>
+            <div>
+                <input type="text" class="share-input" id="share-link" readonly>
+                <button class="share-btn" id="copy-share-link">COPY SECURE LINK</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PDF Export Modal -->
+    <div class="modal-overlay" id="pdf-modal">
+        <div class="modal">
+            <button class="modal-close" id="close-pdf-modal">&times;</button>
+            <h2 class="modal-title">EXPORT TO PDF</h2>
+            <div class="pdf-options">
+                <div class="pdf-option">
+                    <input type="radio" id="pdf-current" name="pdf-option" value="current" checked>
+                    <label for="pdf-current">Current Note</label>
+                </div>
+                <div class="pdf-option">
+                    <input type="radio" id="pdf-selected" name="pdf-option" value="selected">
+                    <label for="pdf-selected">Selected Notes (${selectedNotes.size})</label>
+                </div>
+                <div class="pdf-option">
+                    <input type="radio" id="pdf-all" name="pdf-option" value="all">
+                    <label for="pdf-all">All Notes</label>
+                </div>
+            </div>
+            <button class="share-btn" id="generate-pdf-btn" style="margin-top: 20px;">GENERATE PDF</button>
+        </div>
+    </div>
+
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const noteEditor = document.getElementById('note-editor');
+            const noteTitle = document.getElementById('note-title');
+            const noteList = document.getElementById('note-list');
+            const newNoteBtn = document.getElementById('new-note-btn');
+            const saveNoteBtn = document.getElementById('save-note-btn');
+            const clearNotesBtn = document.getElementById('clear-notes-btn');
+            const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const wordCountEl = document.getElementById('word-count');
+            const particlesContainer = document.getElementById('particles');
+            const searchInput = document.getElementById('search-input');
+            const selectionActions = document.getElementById('selection-actions');
+            const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+            const shareSelectedBtn = document.getElementById('share-selected-btn');
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            const clearSelectionBtn = document.getElementById('clear-selection-btn');
+            const shareModal = document.getElementById('share-modal');
+            const closeShareModal = document.getElementById('close-share-modal');
+            const shareLink = document.getElementById('share-link');
+            const copyShareLink = document.getElementById('copy-share-link');
+            const pdfModal = document.getElementById('pdf-modal');
+            const closePdfModal = document.getElementById('close-pdf-modal');
+            const generatePdfBtn = document.getElementById('generate-pdf-btn');
+            const pdfCurrentOption = document.getElementById('pdf-current');
+            const pdfSelectedOption = document.getElementById('pdf-selected');
+            const pdfAllOption = document.getElementById('pdf-all');
+
+            // State
+            let notes = JSON.parse(localStorage.getItem('cyber-notes')) || [];
+            let currentNoteId = null;
+            let selectedNotes = new Set();
+
+            // Initialize
+            renderNoteList();
+            createParticles();
+            updateSelectionLabel();
+
+            // Event Listeners
+            newNoteBtn.addEventListener('click', createNewNote);
+            saveNoteBtn.addEventListener('click', saveNote);
+            clearNotesBtn.addEventListener('click', clearAllNotes);
+            toggleSidebarBtn.addEventListener('click', toggleSidebar);
+            noteEditor.addEventListener('input', updateWordCount);
+            noteEditor.addEventListener('input', debounceAutoSave, 1000);
+            noteTitle.addEventListener('input', debounceAutoSave, 1000);
+            searchInput.addEventListener('input', searchNotes);
+            deleteSelectedBtn.addEventListener('click', deleteSelectedNotes);
+            shareSelectedBtn.addEventListener('click', shareSelectedNotes);
+            exportPdfBtn.addEventListener('click', openPdfModal);
+            clearSelectionBtn.addEventListener('click', clearSelection);
+            closeShareModal.addEventListener('click', closeShareModalHandler);
+            copyShareLink.addEventListener('click', copyToClipboard);
+            closePdfModal.addEventListener('click', closePdfModalHandler);
+            generatePdfBtn.addEventListener('click', generatePdf);
+
+            // Close modal when clicking outside
+            shareModal.addEventListener('click', function(e) {
+                if (e.target === shareModal) {
+                    closeShareModalHandler();
+                }
+            });
+            
+            pdfModal.addEventListener('click', function(e) {
+                if (e.target === pdfModal) {
+                    closePdfModalHandler();
+                }
+            });
+
+            // Functions
+            function createNewNote() {
+                currentNoteId = Date.now().toString();
+                noteTitle.value = 'UNTITLED NOTE';
+                noteEditor.value = '';
+                updateWordCount();
+                
+                // Add pulse animation to save button
+                saveNoteBtn.classList.add('pulse');
+                setTimeout(() => {
+                    saveNoteBtn.classList.remove('pulse');
+                }, 2000);
+                
+                // Close sidebar on mobile
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                }
+            }
+
+            function saveNote() {
+                if (!currentNoteId) {
+                    currentNoteId = Date.now().toString();
+                }
+
+                const noteTitleValue = noteTitle.value.trim() || 'UNTITLED NOTE';
+                const noteContent = noteEditor.value;
+                const now = new Date();
+
+                const existingNoteIndex = notes.findIndex(note => note.id === currentNoteId);
+
+                if (existingNoteIndex !== -1) {
+                    // Update existing note
+                    notes[existingNoteIndex] = {
+                        id: currentNoteId,
+                        title: noteTitleValue,
+                        content: noteContent,
+                        updatedAt: now.toISOString(),
+                        dateString: formatDate(now)
+                    };
+                } else {
+                    // Add new note
+                    notes.push({
+                        id: currentNoteId,
+                        title: noteTitleValue,
+                        content: noteContent,
+                        updatedAt: now.toISOString(),
+                        dateString: formatDate(now)
+                    });
+                }
+
+                localStorage.setItem('cyber-notes', JSON.stringify(notes));
+                renderNoteList();
+                
+                // Visual feedback
+                saveNoteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>';
+                setTimeout(() => {
+                    saveNoteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>';
+                }, 1000);
+            }
+
+            function formatDate(date) {
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            function debounceAutoSave() {
+                if (currentNoteId && (noteTitle.value || noteEditor.value)) {
+                    clearTimeout(this.debounce);
+                    this.debounce = setTimeout(() => {
+                        saveNote();
+                    }, 1000);
+                }
+            }
+
+            function loadNote(noteId) {
+                const note = notes.find(note => note.id === noteId);
+                if (note) {
+                    currentNoteId = note.id;
+                    noteTitle.value = note.title;
+                    noteEditor.value = note.content;
+                    updateWordCount();
+                    
+                    // Highlight the selected note in the sidebar
+                    document.querySelectorAll('.note-item').forEach(item => {
+                        item.classList.remove('active');
+                        if (item.dataset.id === noteId) {
+                            item.classList.add('active');
+                            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    });
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            }
+
+            function deleteNote(noteId, event) {
+                if (event) event.stopPropagation();
+                if (confirm('DELETE THIS NOTE PERMANENTLY?')) {
+                    notes = notes.filter(note => note.id !== noteId);
+                    localStorage.setItem('cyber-notes', JSON.stringify(notes));
+                    
+                    if (currentNoteId === noteId) {
+                        currentNoteId = null;
+                        noteTitle.value = '';
+                        noteEditor.value = '';
+                        updateWordCount();
+                    }
+                    
+                    // Remove from selected notes
+                    selectedNotes.delete(noteId);
+                    updateSelectionActions();
+                    
+                    renderNoteList();
+                }
+            }
+
+            function clearAllNotes() {
+                if (confirm('WIPE ALL NOTES? THIS ACTION CANNOT BE UNDONE.')) {
+                    notes = [];
+                    localStorage.removeItem('cyber-notes');
+                    currentNoteId = null;
+                    noteTitle.value = '';
+                    noteEditor.value = '';
+                    updateWordCount();
+                    selectedNotes.clear();
+                    updateSelectionActions();
+                    renderNoteList();
+                }
+            }
+
+            function renderNoteList() {
+                noteList.innerHTML = '';
+                
+                // Sort notes by updated date (newest first)
+                notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                
+                if (notes.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'note-item';
+                    emptyState.innerHTML = `
+                        <div class="note-item-content">
+                            <div class="note-item-title">NO NOTES FOUND</div>
+                            <div class="note-item-preview">CREATE A NEW NOTE TO BEGIN</div>
+                        </div>
+                    `;
+                    noteList.appendChild(emptyState);
+                    return;
+                }
+                
+                notes.forEach(note => {
+                    const li = document.createElement('li');
+                    li.className = 'note-item';
+                    li.dataset.id = note.id;
+                    
+                    if (note.id === currentNoteId) {
+                        li.classList.add('active');
+                    }
+                    
+                    if (selectedNotes.has(note.id)) {
+                        li.classList.add('selected');
+                    }
+                    
+                    li.innerHTML = `
+                        <input type="checkbox" class="note-item-checkbox" ${selectedNotes.has(note.id) ? 'checked' : ''}>
+                        <div class="note-item-content">
+                            <div class="note-item-title">${note.title}</div>
+                            <div class="note-item-preview">${note.content.substring(0, 40)}${note.content.length > 40 ? '...' : ''}</div>
+                            <div class="note-item-date">${note.dateString}</div>
+                        </div>
+                    `;
+                    
+                    const checkbox = li.querySelector('.note-item-checkbox');
+                    
+                    li.addEventListener('click', (e) => {
+                        // Don't load note if clicking checkbox
+                        if (e.target !== checkbox) {
+                            loadNote(note.id);
+                        }
+                    });
+                    
+                    checkbox.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleNoteSelection(note.id);
+                    });
+                    
+                    // Add long press for selection
+                    let pressTimer;
+                    li.addEventListener('touchstart', (e) => {
+                        pressTimer = setTimeout(() => {
+                            e.preventDefault();
+                            toggleNoteSelection(note.id);
+                        }, 500);
+                    });
+                    
+                    li.addEventListener('touchend', () => {
+                        clearTimeout(pressTimer);
+                    });
+                    
+                    li.addEventListener('touchmove', () => {
+                        clearTimeout(pressTimer);
+                    });
+                    
+                    noteList.appendChild(li);
+                });
+            }
+
+            function updateWordCount() {
+                const text = noteEditor.value.trim();
+                const wordCount = text ? text.split(/\s+/).length : 0;
+                wordCountEl.textContent = `${wordCount} WORDS`;
+            }
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('open');
+            }
+
+            function createParticles() {
+                const particleCount = 30;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // Random position
+                    const posX = Math.random() * 100;
+                    const posY = Math.random() * 100 + 100;
+                    
+                    // Random size
+                    const size = Math.random() * 2 + 1;
+                    
+                    // Random animation duration
+                    const duration = Math.random() * 15 + 10;
+                    
+                    // Random delay
+                    const delay = Math.random() * 5;
+                    
+                    particle.style.left = `${posX}%`;
+                    particle.style.top = `${posY}%`;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.animationDuration = `${duration}s`;
+                    particle.style.animationDelay = `${delay}s`;
+                    
+                    // Random color
+                    const colors = ['#00f7ff', '#ff00aa', '#aa00ff'];
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            function searchNotes() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                document.querySelectorAll('.note-item').forEach(item => {
+                    const title = item.querySelector('.note-item-title').textContent.toLowerCase();
+                    const preview = item.querySelector('.note-item-preview').textContent.toLowerCase();
+                    
+                    if (searchTerm === '' || title.includes(searchTerm) || preview.includes(searchTerm)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            function toggleNoteSelection(noteId) {
+                if (selectedNotes.has(noteId)) {
+                    selectedNotes.delete(noteId);
+                } else {
+                    selectedNotes.add(noteId);
+                }
+                
+                updateSelectionActions();
+                updateSelectionLabel();
+                renderNoteList();
+            }
+
+            function updateSelectionActions() {
+                if (selectedNotes.size > 0) {
+                    selectionActions.classList.add('visible');
+                } else {
+                    selectionActions.classList.remove('visible');
+                }
+            }
+            
+            function updateSelectionLabel() {
+                const label = document.querySelector('label[for="pdf-selected"]');
+                if (label) {
+                    label.textContent = `Selected Notes (${selectedNotes.size})`;
+                }
+            }
+
+            function deleteSelectedNotes() {
+                if (selectedNotes.size === 0) return;
+                
+                if (confirm(`DELETE ${selectedNotes.size} SELECTED NOTE(S)?`)) {
+                    // Filter out selected notes
+                    notes = notes.filter(note => !selectedNotes.has(note.id));
+                    localStorage.setItem('cyber-notes', JSON.stringify(notes));
+                    
+                    // Clear current note if it was selected
+                    if (selectedNotes.has(currentNoteId)) {
+                        currentNoteId = null;
+                        noteTitle.value = '';
+                        noteEditor.value = '';
+                        updateWordCount();
+                    }
+                    
+                    selectedNotes.clear();
+                    updateSelectionActions();
+                    renderNoteList();
+                }
+            }
+
+            function shareSelectedNotes() {
+                if (selectedNotes.size === 0) return;
+                
+                // For simplicity, we'll just share the first selected note
+                const noteId = Array.from(selectedNotes)[0];
+                const note = notes.find(n => n.id === noteId);
+                
+                if (note) {
+                    // In a real app, this would generate a shareable link
+                    const mockUrl = `${window.location.origin}?share=${noteId}`;
+                    shareLink.value = mockUrl;
+                    openShareModal();
+                }
+            }
+            
+            function openPdfModal() {
+                pdfModal.classList.add('active');
+            }
+            
+            function closePdfModalHandler() {
+                pdfModal.classList.remove('active');
+            }
+            
+            function openShareModal() {
+                shareModal.classList.add('active');
+            }
+            
+            function closeShareModalHandler() {
+                shareModal.classList.remove('active');
+            }
+
+            function generatePdf() {
+                const pdf = new jsPDF();
+                const option = document.querySelector('input[name="pdf-option"]:checked').value;
+                let notesToExport = [];
+                
+                if (option === 'current' && currentNoteId) {
+                    const note = notes.find(n => n.id === currentNoteId);
+                    if (note) notesToExport = [note];
+                } else if (option === 'selected' && selectedNotes.size > 0) {
+                    notesToExport = notes.filter(note => selectedNotes.has(note.id));
+                } else if (option === 'all') {
+                    notesToExport = [...notes];
+                }
+                
+                if (notesToExport.length === 0) {
+                    alert('No notes to export!');
+                    return;
+                }
+                
+                // Add title
+                pdf.setFontSize(20);
+                pdf.setTextColor(0, 247, 255);
+                pdf.text('NEONPAD EXPORT', 105, 20, { align: 'center' });
+                
+                // Add date
+                pdf.setFontSize(10);
+                pdf.setTextColor(170, 170, 170);
+                pdf.text(`Exported: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
+                
+                // Add notes
+                pdf.setFontSize(12);
+                pdf.setTextColor(255, 255, 255);
+                
+                let yPosition = 40;
+                notesToExport.forEach((note, index) => {
+                    // Add note title
+                    pdf.setFontSize(14);
+                    pdf.setTextColor(255, 0, 170);
+                    pdf.text(`${index + 1}. ${note.title}`, 14, yPosition);
+                    
+                    // Add note date
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(170, 170, 170);
+                    pdf.text(note.dateString, 190, yPosition, { align: 'right' });
+                    
+                    // Add note content
+                    pdf.setFontSize(12);
+                    pdf.setTextColor(255, 255, 255);
+                    const splitText = pdf.splitTextToSize(note.content, 180);
+                    pdf.text(splitText, 14, yPosition + 10);
+                    
+                    yPosition += 20 + (splitText.length * 7);
+                    
+                    // Add page break if needed
+                    if (yPosition > 260 && index < notesToExport.length - 1) {
+                        pdf.addPage();
+                        yPosition = 20;
+                    }
+                });
+                
+                // Save the PDF
+                pdf.save(`neonpad-export-${new Date().toISOString().slice(0, 10)}.pdf`);
+                closePdfModalHandler();
+            }
+
+            function clearSelection() {
+                selectedNotes.clear();
+                updateSelectionActions();
+                updateSelectionLabel();
+                renderNoteList();
+            }
+
+            function copyToClipboard() {
+                shareLink.select();
+                document.execCommand('copy');
+                
+                // Visual feedback
+                copyShareLink.textContent = 'LINK COPIED!';
+                setTimeout(() => {
+                    copyShareLink.textContent = 'COPY SECURE LINK';
+                }, 2000);
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    sidebar.classList.add('open');
+                }
+            });
+
+            // Initialize sidebar state based on screen size
+            if (window.innerWidth >= 768) {
+                sidebar.classList.add('open');
+            }
+        });
+    </script>
+</body>
+</html>
